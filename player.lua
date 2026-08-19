@@ -67,4 +67,14 @@ function Player:keypressed(key)
     end
 end
 
+function Player:draw()
+    love.graphics.rectangle(
+        "fill",
+        self.x,
+        self.y,
+        self.width,
+        self.height
+    )
+end
+
 return Player

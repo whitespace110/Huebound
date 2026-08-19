@@ -13,6 +13,11 @@ local ground
 local Player = require("player")
 local player
 
+-- - Map - --
+local sti = require("libraries/sti")
+local map
+local platfroms = {}
+
 -- - Camera - --
 local Camera = require("libraries/camera")
 local cam
@@ -20,17 +25,40 @@ local cam
 -- - Debug - --
 local debug = true
 
+
+-- - Functions - --
+
+-- Platform Collider Helper Function --
+local function generateColliders()
+    if map.layers["Colliders"] then -- check the type
+        for i, object in pairs(map.layers["Colliders"].objects) do
+            local platform = world:newRectangleCollider(object.x, object.y, object.width, object.height)
+
+            platform:setType("static")
+            platform:setCollisionClass("Ground")
+            table.insert(platfroms, platform) -- keep track of the objects
+        end
+    end
+end
+
+-- --- --
+
+
 -- - Loading - --
 function love.load()
+    -- Sharpen the sprites --
+    love.graphics.setDefaultFilter("nearest", "nearest")
+
+    -- Map Specification --
+    map = sti("assets/maps/first_map.lua")
+
     -- Initilazing World --
     world = wf.newWorld(0, gravity)
 
     world:addCollisionClass("Player")
     world:addCollisionClass("Ground")
 
-    ground = world:newRectangleCollider(scr_width / 4, scr_height / 1.5, 600, 100)
-    ground:setType("static")
-    ground:setCollisionClass("Ground")
+    generateColliders()
 
     -- Player Creation --
     player = Player:new(world)
@@ -62,9 +90,15 @@ end
 
 -- - Rendering - --
 function love.draw()
+
     cam:attach()
-    if debug then world:draw() end
-    cam:detach()
+
+    -- Rendering Map --
+    map:drawLayer(map.layers["Ground"])
 
     -- Render hitboxes if debug --
+    if debug then world:draw() end
+
+    cam:detach()
+
 end
