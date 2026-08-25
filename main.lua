@@ -1,6 +1,6 @@
 -- - Window - --
-local scr_width, scr_height = 1280, 720
-love.window.setMode(scr_width, scr_height)
+local scrWidth, scrHeight = 1280, 720
+love.window.setMode(scrWidth, scrHeight)
 
 -- - World - --
 local wf = require("libraries/windfield")
@@ -26,8 +26,11 @@ local yellowPlatforms = {}
 local Camera = require("libraries/camera")
 local cam
 
+-- - Menu - --
+local Menu = require("menu")
+
 -- - Debug - --
-local debug = true
+local debug = false
 
 
 -- - Functions - --
@@ -104,6 +107,9 @@ function love.load()
     -- Player Creation --
     player = Player:new(world, anim8)
 
+    -- Title Animation --
+    Menu:loadTitle(anim8)
+
     -- Camera Creation --
     cam = Camera()
 end
@@ -126,12 +132,14 @@ function love.update(dt)
     player:update(dt)
     world:update(dt)
     player:updateAnimation(dt)
+    Menu:update(dt)
 
     cam:lookAt(player.x, player.y)
 end
 
 -- - Rendering - --
 function love.draw()
+    love.graphics.setColor(1, 1, 1, 1) -- > resetting color
 
     cam:attach()
 
@@ -157,4 +165,7 @@ function love.draw()
     if debug then world:draw() end
 
     cam:detach()
+
+    -- Render Starting Menu --
+    Menu:draw(scrWidth, scrHeight)
 end

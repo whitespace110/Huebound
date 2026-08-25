@@ -16,6 +16,7 @@ function Player:new(world, anim8)
     self.velY = -1200
     self.maxVel = 300
 
+    -- Physics Object --
     self.cut = 5
     self.collider = world:newBSGRectangleCollider(
                     self.x,
@@ -64,32 +65,41 @@ function Player:new(world, anim8)
         end
     end)
 
+    -- Animations --
     self.spriteSheet = love.graphics.newImage("assets/images/player_spritesheet.png")
     self.grid = anim8.newGrid(32, 48, self.spriteSheet:getWidth(), self.spriteSheet:getHeight())
 
     self.animations = { red = { right = {}, left = {} }, blue = { right = {}, left = {} }, yellow = { right = {}, left = {} } }
     self.animationSpeed = 0.2
 
+    -- Right Animations --
+    -- red --
     self.animations.red.right.idle = anim8.newAnimation(self.grid('1-4', 1), self.animationSpeed)
     self.animations.blue.right.idle = anim8.newAnimation(self.grid('1-4', 4), self.animationSpeed)
     self.animations.yellow.right.idle = anim8.newAnimation(self.grid('1-4', 7), self.animationSpeed)
 
+    -- blue --
     self.animations.red.right.walk = anim8.newAnimation(self.grid('1-4', 2), self.animationSpeed)
     self.animations.blue.right.walk = anim8.newAnimation(self.grid('1-4', 5), self.animationSpeed)
     self.animations.yellow.right.walk = anim8.newAnimation(self.grid('1-4', 8), self.animationSpeed)
 
+    -- yellow --
     self.animations.red.right.jump = anim8.newAnimation(self.grid('1-4', 3), self.animationSpeed)
     self.animations.blue.right.jump = anim8.newAnimation(self.grid('1-4', 6), self.animationSpeed)
     self.animations.yellow.right.jump = anim8.newAnimation(self.grid('1-4', 9), self.animationSpeed)
 
+    -- Left Animations --
+    -- red --
     self.animations.red.left.idle = anim8.newAnimation(self.grid('1-4', 10), self.animationSpeed)
     self.animations.blue.left.idle = anim8.newAnimation(self.grid('1-4', 13), self.animationSpeed)
     self.animations.yellow.left.idle = anim8.newAnimation(self.grid('1-4', 16), self.animationSpeed)
 
+    -- blue --
     self.animations.red.left.walk = anim8.newAnimation(self.grid('1-4', 11), self.animationSpeed)
     self.animations.blue.left.walk = anim8.newAnimation(self.grid('1-4', 14), self.animationSpeed)
     self.animations.yellow.left.walk = anim8.newAnimation(self.grid('1-4', 17), self.animationSpeed)
 
+    -- yellow --
     self.animations.red.left.jump = anim8.newAnimation(self.grid('1-4', 12), self.animationSpeed)
     self.animations.blue.left.jump = anim8.newAnimation(self.grid('1-4', 15), self.animationSpeed)
     self.animations.yellow.left.jump = anim8.newAnimation(self.grid('1-4', 18), self.animationSpeed)
@@ -136,7 +146,10 @@ function Player:updateAnimation(dt)
 end
 
 -- - Render Player - --
-function Player:draw() self.anim:draw(self.spriteSheet, self.x, self.y) end
+function Player:draw()
+    love.graphics.setColor(1, 1, 1, 1)
+    self.anim:draw(self.spriteSheet, self.x, self.y)
+end
 
 -- - Player Single Imputs - --
 function Player:keypressed(key)
