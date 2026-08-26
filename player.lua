@@ -2,6 +2,9 @@ local Player = {}
 
 Player.__index = Player
 
+-- - Creating particles --
+local Particles = require("particles")
+
 -- - Create Player - --
 function Player:new(world, anim8)
     local self = setmetatable({}, Player)
@@ -14,7 +17,7 @@ function Player:new(world, anim8)
 
     self.velX = 1500
     self.velY = -1200
-    self.maxVel = 300
+    self.maxVel = 450
 
     -- Physics Object --
     self.cut = 5
@@ -26,7 +29,7 @@ function Player:new(world, anim8)
                     self.cut
     )
     self.collider:setFixedRotation(true)
-    self.collider:setFriction(0.8)
+    self.collider:setFriction(1.2)
     self.collider:setCollisionClass("Player")
 
     self.grounded = false
@@ -118,11 +121,19 @@ function Player:update(dt)
         self.collider:applyForce(-self.velX, 0)
         self.moving = true
         self.direction = "left"
-
     elseif love.keyboard.isDown("d") then
         self.collider:applyForce(self.velX, 0)
         self.moving = true
         self.direction = "right"
+    end
+
+    -- Setting max speed --
+    local vx, vy = self.collider:getLinearVelocity() -- > current velocity
+
+    if vx >= self.maxVel then -- > check if the speed is larger than the maximum velocity
+        self.collider:setLinearVelocity(self.maxVel, vy) -- > slow down
+    elseif vx <= -self.maxVel then
+        self.collider:setLinearVelocity(-self.maxVel, vy)
     end
 
     -- Matching the player cordiates with its collider
@@ -130,6 +141,7 @@ function Player:update(dt)
     self.y = self.collider:getY() - self.height / 2
 
     self.grounded = false -- > resetting grounded every frame
+    Particles:update(dt)
 end
 
 -- - Update player animations - --
@@ -147,24 +159,29 @@ end
 
 -- - Render Player - --
 function Player:draw()
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(1, 1, 1, 1) -- > resetting coloring
+    Particles:draw()
+    love.graphics.setColor(1, 1, 1, 1) -- > resetting coloring
     self.anim:draw(self.spriteSheet, self.x, self.y)
 end
 
 -- - Player Single Imputs - --
 function Player:keypressed(key)
-    -- Player Jumping --
+    -- Player jumping --
     if key == "w" and self.grounded then
         self.collider:applyLinearImpulse(0, self.velY)
     end
 
     -- Player changing colors --
-        if key == "left" then
+        if key == "left" and self.color ~= "red" then
             self.color = "red"
-        elseif key == "up" then
+            Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
+        elseif key == "up" and self.color ~= "blue" then
             self.color = "blue"
-        elseif key == "right" then
+            Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
+        elseif key == "right" and self.color ~= "yellow" then
             self.color = "yellow"
+            Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
         end
 end
 
