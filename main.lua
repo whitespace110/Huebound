@@ -29,6 +29,10 @@ local cam
 -- - Menu - --
 local Menu = require("menu")
 
+-- - Shaders - --
+local shader = require("shaders")
+local canvas
+
 -- - Debug - --
 local debug = false
 
@@ -81,6 +85,17 @@ local function generateColliders()
     end
 end
 
+-- Layer Generation Function --
+local function addLayer(color, x, y, width, height)
+    -- Setting deafults --
+    x = x or 0
+    y = y or 0
+    width = width or scrWidth
+    height = height or scrHeight
+
+    love.graphics.setColor(color)
+    love.graphics.rectangle("fill", x, y, width, height)
+end
 -- --- --
 
 
@@ -109,6 +124,9 @@ function love.load()
 
     -- Title Animation --
     Menu:loadTitle(anim8)
+
+    -- Canvas Creation --
+    canvas = love.graphics.newCanvas(scrWidth, scrHeight)
 
     -- Camera Creation --
     cam = Camera()
@@ -139,6 +157,11 @@ end
 
 -- - Rendering - --
 function love.draw()
+    love.graphics.setCanvas(canvas) -- > drawing to canvas
+
+    -- Adding Background --
+    addLayer({ 0, 0, 0 })
+
     love.graphics.setColor(1, 1, 1, 1) -- > resetting color
 
     cam:attach()
@@ -168,4 +191,14 @@ function love.draw()
 
     -- Render Starting Menu --
     Menu:draw(scrWidth, scrHeight)
+
+    love.graphics.setCanvas()
+
+    -- Rendering Canvas and Applieing Shaders --
+    love.graphics.setColor(1, 1, 1, 1) -- > resetting the color
+
+    love.graphics.setShader(shader.crt)
+    love.graphics.draw(canvas)
+    love.graphics.setShader()
+
 end

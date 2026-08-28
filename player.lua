@@ -39,32 +39,23 @@ function Player:new(world, anim8)
 
     -- Physics Updates --
     self.collider:setPreSolve(function(collider1, collider2, contact)
+        -- Platform Collision Detection --
+        local nx, ny = contact:getNormal()
+
+        local validPlatform =
+            collider2.collision_class == "Ground"
+            or collider2.collision_class == "RedPlatform" and self.color == "red"
+            or collider2.collision_class == "BluePlatform" and self.color == "blue"
+            or collider2.collision_class == "YellowPlatform" and self.color == "yellow"
+
+        if not validPlatform then
+            contact:setEnabled(false)
+            return
+        end
+
         -- Ground Collision Detection --
-        local nx, ny = contact:getNormal() -- > getting normals
-
-        if collider2.collision_class == "Ground"
-            or collider2.collision_class == "RedPlatform"
-            or collider2.collision_class == "BluePlatform"
-            or collider2.collision_class == "YellowPlatform" then
-            if ny < 0 then -- > ny == -1 -> below ground
-                self.grounded = true
-            end
-        end
-
-        -- Color Collision Detection --
-        if collider2.collision_class == "RedPlatform" -- detect red platfroms
-            and self.color ~= "red" then
-            contact:setEnabled(false)
-        end
-
-        if collider2.collision_class == "BluePlatform" -- detect blue platforms
-            and self.color ~= "blue" then
-            contact:setEnabled(false)
-        end
-
-        if collider2.collision_class == "YellowPlatform" -- detect yellow platforms
-            and self.color ~= "yellow" then
-            contact:setEnabled(false)
+        if ny < 0 then
+            self.grounded = true
         end
     end)
 
@@ -140,6 +131,7 @@ function Player:update(dt)
     self.x = self.collider:getX() - self.width / 2
     self.y = self.collider:getY() - self.height / 2
 
+    self.collider:setAwake(true)
     self.grounded = false -- > resetting grounded every frame
     Particles:update(dt)
 end
@@ -150,7 +142,7 @@ function Player:updateAnimation(dt)
         self.anim = self.animations[self.color][self.direction].idle
     elseif self.moving and self.grounded then
         self.anim = self.animations[self.color][self.direction].walk
-    elseif self.moving and not self.grounded then
+    elseif not self.grounded then
         self.anim = self.animations[self.color][self.direction].jump
     end
 
@@ -173,16 +165,16 @@ function Player:keypressed(key)
     end
 
     -- Player changing colors --
-        if key == "left" and self.color ~= "red" then
-            self.color = "red"
-            Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
-        elseif key == "up" and self.color ~= "blue" then
-            self.color = "blue"
-            Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
-        elseif key == "right" and self.color ~= "yellow" then
-            self.color = "yellow"
-            Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
-        end
+    if key == "left" and self.color ~= "red" then
+        self.color = "red"
+        Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
+    elseif key == "up" and self.color ~= "blue" then
+        self.color = "blue"
+        Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
+    elseif key == "right" and self.color ~= "yellow" then
+        self.color = "yellow"
+        Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
+    end
 end
 
 return Player

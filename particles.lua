@@ -29,7 +29,7 @@ function Particles:spawn(x, y, color)
             x = x,
             y = y,
             vx = math.random(-80, 80),
-            vy = math.random(-160, 60),
+            vy = math.random(-120, 60),
             lifespan = 0.3,
             opacity = 1,
             color = color

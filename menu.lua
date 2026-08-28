@@ -54,7 +54,7 @@ function Menu:update(dt)
             and mouseX >= buttonX
             and mouseX <= buttonX + buttonWidth
             and mouseY >= buttonY
-            and mouseY <= buttonY + buttonHeight then -- > checking if the moue is above the button
+            and mouseY <= buttonY + buttonHeight + 20 then -- > checking if the moue is above the button
             started = true -- > starting indicator
         end
     end
