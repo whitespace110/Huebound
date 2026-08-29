@@ -1,6 +1,8 @@
 -- - Window - --
-local scrWidth, scrHeight = 1280, 720
-love.window.setMode(scrWidth, scrHeight)
+local scrWidth, scrHeight = love.graphics.getDimensions()
+
+-- - Custom Mouse - --
+local customMouse = require("mouse")
 
 -- - World - --
 local wf = require("libraries/windfield")
@@ -28,6 +30,12 @@ local cam
 
 -- - Menu - --
 local Menu = require("menu")
+
+-- - Pause Menu - --
+local PauseMenu = require("pausemenu")
+
+-- - Timer - --
+local Timer = require("timer")
 
 -- - Shaders - --
 local shader = require("shaders")
@@ -96,6 +104,7 @@ local function addLayer(color, x, y, width, height)
     love.graphics.setColor(color)
     love.graphics.rectangle("fill", x, y, width, height)
 end
+
 -- --- --
 
 
@@ -134,25 +143,37 @@ end
 
 -- - Single Imputs - --
 function love.keypressed(key)
-    -- Player jump --
-    player:keypressed(key)
+    -- Player Jump --
+    if  not PauseMenu:isPaused() then player:keypressed(key) end
 
-    -- Toogle debug --
+    -- Toogle Debug --
     if key == "f3" and not debug then
         debug = true
     elseif key == "f3" and debug then
         debug = false
     end
+
+    -- Toggle Pause --
+    if key == "escape" and Menu:isStarted() then
+        PauseMenu:toggle()
+    end
 end
 
 -- - Upadating - --
 function love.update(dt)
-    player:update(dt)
-    world:update(dt)
-    player:updateAnimation(dt)
-    Menu:update(dt)
+    PauseMenu:update(dt, scrWidth, scrHeight)
 
-    cam:lookAt(player.x, player.y)
+    if not PauseMenu:isPaused() then
+        player:update(dt)
+        world:update(dt)
+        player:updateAnimation(dt)
+        Timer:update(dt)
+
+        cam:lookAt(player.x, player.y)
+    end
+
+    Menu:update(dt, shader, Timer)
+    customMouse:update()
 end
 
 -- - Rendering - --
@@ -189,8 +210,16 @@ function love.draw()
 
     cam:detach()
 
-    -- Render Starting Menu --
+    -- Render Timer --
+    Timer:draw(scrWidth, scrHeight)
+
+    -- Render Pause Menu --
+    PauseMenu:draw(scrWidth, scrHeight)
+
+    -- Render Starting Menu and Shader--
+    love.graphics.setShader(shader.ping)
     Menu:draw(scrWidth, scrHeight)
+    love.graphics.setShader()
 
     love.graphics.setCanvas()
 
@@ -200,5 +229,8 @@ function love.draw()
     love.graphics.setShader(shader.crt)
     love.graphics.draw(canvas)
     love.graphics.setShader()
+
+    -- Rendering Custom Mouse --
+    customMouse:draw()
 
 end

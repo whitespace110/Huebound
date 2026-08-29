@@ -4,6 +4,7 @@ local Menu = {}
 local backgroundOpacity = 1
 local opacity = 1
 local started = false
+local radius = 50
 love.graphics.setDefaultFilter("nearest", "nearest")
 
 -- - Creating Font - --
@@ -21,6 +22,11 @@ local buttonScale = 2
 local buttonX, buttonY = 0, 0
 local buttonWidth = buttonSprite:getWidth() * buttonScale
 local buttonHeight = buttonSprite:getHeight() * buttonScale
+
+-- - Is started - --
+function Menu:isStarted()
+	return started
+end
 
 -- - Load Title - --
 function Menu:loadTitle(anim8)
@@ -41,7 +47,7 @@ function Menu:loadTitle(anim8)
 end
 
 -- - Update Main Menu - --
-function Menu:update(dt)
+function Menu:update(dt, shader, timer)
     -- Updating Blackscreen --
     if started then opacity = opacity - dt end
     if started and opacity <= 0 then backgroundOpacity = backgroundOpacity - dt end
@@ -55,12 +61,25 @@ function Menu:update(dt)
             and mouseX <= buttonX + buttonWidth
             and mouseY >= buttonY
             and mouseY <= buttonY + buttonHeight + 20 then -- > checking if the moue is above the button
-            started = true -- > starting indicator
+            started = true                                 -- > starting indicator
+
+            shader.ping:send("mousePos", { mouseX, mouseY })
         end
+    end
+
+    -- Radius Updating --
+    if started then
+        radius = radius + 400 * dt
+        shader.ping:send("radius", radius)
     end
 
     -- Upadte Title --
     if not started and backgroundOpacity >= 0 then titleAnimation:update(dt) end
+
+    -- Start Timer --
+    if opacity and backgroundOpacity <= 0 then
+	 timer:start()
+    end
 end
 
 -- - Render Main Menu - --

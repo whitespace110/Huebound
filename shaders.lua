@@ -26,4 +26,30 @@ Shaders.crt = love.graphics.newShader[[
     }
 ]]
 
+-- - Main Menu Ping Shader - --
+Shaders.ping = love.graphics.newShader[[
+    // External Values //
+    extern vec2 mousePos;
+    extern float radius;
+
+    // Main Effect //
+    vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_cords) {
+        vec4 pixel = Texel(tex, texture_coords);
+        pixel *= color;
+
+        float distance = length(screen_cords - mousePos);
+        float thickness = 35.0;
+
+        float innerDistance = distance - (radius - thickness) - 5;
+        float alpha = clamp(innerDistance / thickness, 0.0, 1.0);
+
+        if (abs(distance - radius) < thickness){
+            pixel.rgb = vec3(1.0);
+            pixel.a *= alpha;
+        }
+
+        return pixel;
+    }
+]]
+
 return Shaders

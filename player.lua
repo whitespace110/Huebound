@@ -15,9 +15,9 @@ function Player:new(world, anim8)
     self.width = 32
     self.height = 48
 
-    self.velX = 1500
+    self.velX = 2400
     self.velY = -1200
-    self.maxVel = 450
+    self.maxVel = 420
 
     -- Physics Object --
     self.cut = 5
@@ -29,7 +29,7 @@ function Player:new(world, anim8)
                     self.cut
     )
     self.collider:setFixedRotation(true)
-    self.collider:setFriction(1.2)
+    self.collider:setFriction(3)
     self.collider:setCollisionClass("Player")
 
     self.grounded = false
