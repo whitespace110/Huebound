@@ -5,7 +5,7 @@ Timer.running = false
 love.graphics.setDefaultFilter("nearest", "nearest")
 
 -- - Creating Font - --
-local timerFont = love.graphics.newFont("assets/fonts/Jersey10-Regular.ttf", 48)
+local timerFont = love.graphics.newFont("assets/fonts/Jersey10-Regular.ttf", 68)
 
 -- - Timer Start - --
 function Timer:start()

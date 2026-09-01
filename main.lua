@@ -12,9 +12,14 @@ local gravity = 500
 -- - Player - --
 local Player = require("player")
 local player
+local playerSpawnX, playerSpawnY
 
 -- - Animations - --
 local anim8 = require("libraries/anim8")
+
+-- - Sounds - --
+local sounds = {}
+sounds.complete = love.audio.newSource("assets/sounds/complete.wav", "static")
 
 -- - Map - --
 local sti = require("libraries/sti")
@@ -36,6 +41,10 @@ local PauseMenu = require("pausemenu")
 
 -- - Timer - --
 local Timer = require("timer")
+
+-- - Level Completion Sensor - --
+local sensor
+local finish = true
 
 -- - Shaders - --
 local shader = require("shaders")
@@ -93,7 +102,20 @@ local function generateColliders()
     end
 end
 
--- Layer Generation Function --
+-- - End of Level Helper Function - --
+local function levelFinish()
+	if map.layers["CompleteLevel"] then -- > check the layer
+        for i, object in pairs(map.layers["CompleteLevel"].objects) do
+            -- Sensor Parameteres --
+            sensor = world:newRectangleCollider(object.x, object.y, object.width, object.height)
+
+            sensor:setType("static")
+            sensor:setCollisionClass("Finish")
+		end
+	end
+end
+
+-- Layer Generation Helper Function --
 local function addLayer(color, x, y, width, height)
     -- Setting deafults --
     x = x or 0
@@ -114,22 +136,25 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
 
     -- Map Specification --
-    map = sti("assets/maps/first_map.lua")
+    map = sti("assets/maps/level1.lua")
 
     -- Initilazing World --
     world = wf.newWorld(0, gravity)
 
     world:addCollisionClass("Player")
     world:addCollisionClass("Ground")
+    world:addCollisionClass("Finish", {ignores = {"Ground"}})
 
     world:addCollisionClass("RedPlatform")
     world:addCollisionClass("BluePlatform")
     world:addCollisionClass("YellowPlatform")
 
     generateColliders()
+    levelFinish()
 
     -- Player Creation --
-    player = Player:new(world, anim8)
+    player = Player:new(world, anim8, map)
+    playerSpawnX, playerSpawnY = player:getSpawn(map)
 
     -- Title Animation --
     Menu:loadTitle(anim8)
@@ -144,7 +169,15 @@ end
 -- - Single Imputs - --
 function love.keypressed(key)
     -- Player Jump --
-    if  not PauseMenu:isPaused() then player:keypressed(key) end
+    if not PauseMenu:isPaused() then player:keypressed(key) end
+
+    -- Exit Fullscreen --
+    if key == "f11" then
+        local fullscreen = love.window.getFullscreen()
+        love.window.setFullscreen(not fullscreen)
+        love.window.setPosition(scrWidth / 4, scrHeight / 4)
+        return
+    end
 
     -- Toogle Debug --
     if key == "f3" and not debug then
@@ -157,19 +190,37 @@ function love.keypressed(key)
     if key == "escape" and Menu:isStarted() then
         PauseMenu:toggle()
     end
+
+    -- Reset --
+    if key == "r" and PauseMenu:isPaused() then
+        PauseMenu:toggle()
+        player.collider:setPosition(player:getSpawn(map))
+        player.collider:setLinearVelocity(0, 0)
+        player.color = "red"
+        player.direction = "right"
+        Timer:reset()
+    end
 end
 
 -- - Upadating - --
 function love.update(dt)
-    PauseMenu:update(dt, scrWidth, scrHeight)
-
     if not PauseMenu:isPaused() then
-        player:update(dt)
+        player:update(dt, map)
         world:update(dt)
         player:updateAnimation(dt)
         Timer:update(dt)
 
-        cam:lookAt(player.x, player.y)
+        -- Detection --
+        if player:isComplete() and finish then
+            Menu:finish()
+            Timer:stop()
+            sounds.complete:play()
+            finish = false
+        end
+
+        if player.y <= playerSpawnY + 700 then
+            cam:lookAt(player.x, player.y)
+        end
     end
 
     Menu:update(dt, shader, Timer)
@@ -212,6 +263,11 @@ function love.draw()
 
     -- Render Timer --
     Timer:draw(scrWidth, scrHeight)
+
+
+    -- Complete Text --
+    if player:isComplete() then love.graphics.print("you won", scrWidth/2, 400) end
+
 
     -- Render Pause Menu --
     PauseMenu:draw(scrWidth, scrHeight)

@@ -3,6 +3,7 @@ local Menu = {}
 -- - Menu Parametres - --
 local backgroundOpacity = 1
 local opacity = 1
+local finished = false
 local started = false
 local radius = 50
 love.graphics.setDefaultFilter("nearest", "nearest")
@@ -22,6 +23,15 @@ local buttonScale = 2
 local buttonX, buttonY = 0, 0
 local buttonWidth = buttonSprite:getWidth() * buttonScale
 local buttonHeight = buttonSprite:getHeight() * buttonScale
+
+-- - Sound Effects - --
+local sounds = {}
+sounds.start = love.audio.newSource("assets/sounds/press.wav", "static")
+
+-- - Finished - --
+function Menu:finish()
+	finished = true
+end
 
 -- - Is started - --
 function Menu:isStarted()
@@ -57,11 +67,12 @@ function Menu:update(dt, shader, timer)
 
     if not started then
         if love.mouse.isDown(1)
-            and mouseX >= buttonX
-            and mouseX <= buttonX + buttonWidth
-            and mouseY >= buttonY
-            and mouseY <= buttonY + buttonHeight + 20 then -- > checking if the moue is above the button
+            and mouseX >= buttonX - 20
+            and mouseX <= buttonX + buttonWidth + 30
+            and mouseY >= buttonY + 20
+            and mouseY <= buttonY + buttonHeight + 40 then -- > checking if the moue is above the button
             started = true                                 -- > starting indicator
+            sounds.start:play()
 
             shader.ping:send("mousePos", { mouseX, mouseY })
         end
@@ -77,7 +88,7 @@ function Menu:update(dt, shader, timer)
     if not started and backgroundOpacity >= 0 then titleAnimation:update(dt) end
 
     -- Start Timer --
-    if opacity and backgroundOpacity <= 0 then
+    if opacity and backgroundOpacity <= 0  and not finished then
 	 timer:start()
     end
 end

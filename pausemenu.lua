@@ -5,14 +5,18 @@ PauseMenu.paused = false
 -- - Sprites - --
 local pauseButton = love.graphics.newImage("assets/images/ui/icons/pause.png")
 local pauseMenu = love.graphics.newImage("assets/images/ui/pause_menu.png")
-local ecscapeButton = love.graphics.newImage("assets/images/ui/button2.png")
-local restartButton = love.graphics.newImage("assets/images/ui/button3.png")
-local continueButton = love.graphics.newImage("assets/images/ui/button4.png")
 local ecscapeButtonIcon = love.graphics.newImage("assets/images/ui/icons/return_to_menu.png")
 local restartButtonIcon = love.graphics.newImage("assets/images/ui/icons/restart.png")
-local continueButtonIcon = love.graphics.newImage("assets/images/ui/icons/continue.png")
+local continueButton = love.graphics.newImage("assets/images/ui/icons/continue.png")
 
-local pauseFont = love.graphics.newFont("assets/fonts/Jersey10-Regular.ttf", 40)
+-- - Sound Effects - --
+local sounds = {}
+sounds.pause = love.audio.newSource("assets/sounds/pause.wav", "static")
+sounds.paused = love.audio.newSource("assets/sounds/pause_background.mp3", "stream")
+sounds.paused:setLooping(true)
+
+
+local pauseFont = love.graphics.newFont("assets/fonts/Jersey10-Regular.ttf", 25)
 
 -- - Get the Current Pause Status - --
 function PauseMenu:isPaused()
@@ -22,52 +26,12 @@ end
 -- - Toggle Pause - --
 function PauseMenu:toggle()
     self.paused = not self.paused
-end
+    sounds.pause:play()
 
--- - Updating Pause Menu - --
-function PauseMenu:update(dt, width, height)
-    if self.paused then -- check if paused
-        return
-    end
-
-    -- Clicking the Button Pauses --
-    if not self.paused then
-        local mouseX, mouseY = love.mouse.getPosition()
-
-        local x = width / 7 - pauseButton:getWidth() / 2 - 90
-        local y = height / 6 - pauseButton:getHeight() / 2 - 50
-
-        if love.mouse.isDown(1)
-            and mouseX >= x
-            and mouseX <= x + pauseButton:getWidth()
-            and mouseY >= y
-            and mouseY <= y + pauseButton:getHeight()
-        then
-            self:toggle()
-        end
-    end
-
-    -- Pause Menu Buttons --
-    local menuX = width / 2 - pauseMenu:getWidth() / 2
-    local menuY = height / 2 - pauseMenu:getHeight() / 2
-
-    local buttonGap = 24
-    local buttonsWidth = 64 * 3 + buttonGap * 2
-    local buttonsX = menuX + pauseMenu:getWidth() / 2 - buttonsWidth / 2
-    local buttonsY = menuY + pauseMenu:getHeight() - 115
-
-    -- continue --
-    local continueX = buttonsX + (64 + buttonGap) * 2
-
-    local mouseX, mouseY = love.mouse.getPosition()
-
-    if love.mouse.isDown(1)
-        and mouseX >= continueX
-        and mouseX <= continueX + 64
-        and mouseY >= buttonsY
-        and mouseY <= buttonsY + 64
-    then
-        self:toggle()
+    if self.paused then
+        sounds.paused:play()
+    else
+        sounds.paused:stop()
     end
 end
 
@@ -76,61 +40,100 @@ function PauseMenu:draw(width, height)
     local x = width / 7 - pauseButton:getWidth() / 2
     local y = height / 6 - pauseButton:getHeight() / 2
 
-    -- Rendering Pause Menu --
     if self:isPaused() then
-        local menuX = width / 2 - pauseMenu:getWidth() / 2
-        local menuY = height / 2 - pauseMenu:getHeight() / 2
-
-        -- Main Menu --
-        love.graphics.setColor(180/255, 180/255, 180/255, 0.1)
+        -- Darkening Layer --
+        love.graphics.setColor(90/255, 90/255, 90/255, 0.1)
         love.graphics.rectangle("fill", 0, 0, width, height)
-        love.graphics.setColor(1, 1, 1, 0.85)
-        love.graphics.draw(pauseMenu, menuX, menuY)
 
-        -- text --
-        local text = "LEVEL 0"
-        local textX = menuX + pauseMenu:getWidth() / 2 - pauseFont:getWidth(text) / 2 - 10
-        local textY = menuY + 50
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.setFont(pauseFont)
 
-        love.graphics.print(text, textX, textY)
+        -- Continue Button --
+        love.graphics.draw(continueButton, x, y)
 
-        -- buttons --
-        local buttonGap = 24
+        love.graphics.setColor(50/255, 50/255, 70/255, 0.8)
 
-        local buttonsWidth = 64 * 3 + buttonGap * 2
-        local buttonsX = menuX + pauseMenu:getWidth() / 2 - buttonsWidth / 2
-        local buttonsY = menuY + pauseMenu:getHeight() - 120
+        local continueText = "ESC"
+        local continueTextX = x + (continueButton:getWidth() / 2)
+            - pauseFont:getWidth(continueText) / 2
 
-        love.graphics.draw(ecscapeButton, buttonsX, buttonsY)
-        love.graphics.draw(restartButton, buttonsX + 64 + buttonGap, buttonsY)
-        love.graphics.draw(continueButton, buttonsX + (64 + buttonGap) * 2, buttonsY)
-
-        -- icons --
-        local iconSize = 32
-
-        love.graphics.draw(
-            ecscapeButtonIcon,
-            buttonsX + 16,
-            buttonsY + 16
+        love.graphics.print(
+            continueText,
+            continueTextX,
+            y + continueButton:getHeight() + 5
         )
+
+        -- Restart Button --
+        local restartX = width / 7 - continueButton:getWidth() / 2
+        local restartY = height / 1.2 - restartButtonIcon:getHeight()
+
+        love.graphics.setColor(1, 1, 1, 1)
 
         love.graphics.draw(
             restartButtonIcon,
-            buttonsX + 64 + buttonGap + 16,
-            buttonsY + 16
+            restartX,
+            restartY
         )
+
+        love.graphics.setColor(50/255, 50/255, 70/255, 0.8)
+
+        local restartText = "R"
+        local restartTextX = restartX
+            + restartButtonIcon:getWidth() / 2
+            - pauseFont:getWidth(restartText) / 2
+
+        love.graphics.print(
+            restartText,
+            restartTextX,
+            restartY + restartButtonIcon:getHeight() + 5
+        )
+        love.graphics.setColor(1, 1, 1, 1)
+
+        -- Return to Menu Button --
+        local menuX = restartX + restartButtonIcon:getWidth() + 50
+        local menuY = restartY
 
         love.graphics.draw(
-            continueButtonIcon,
-            buttonsX + (64 + buttonGap) * 2 + 16,
-            buttonsY + 16
+            ecscapeButtonIcon,
+            menuX,
+            menuY
         )
+
+        love.graphics.setColor(50/255, 50/255, 70/255, 0.8)
+
+        local menuText = "H"
+        local menuTextX = menuX
+            + ecscapeButtonIcon:getWidth() / 4
+            - pauseFont:getWidth(menuText) / 2
+
+        love.graphics.print(
+            menuText,
+            menuTextX,
+            menuY + ecscapeButtonIcon:getHeight() + 5
+        )
+
+        love.graphics.setColor(1, 1, 1, 1)
+        return
     end
 
-    -- Rendering Pause Button --
-    if not self:isPaused() then
-        love.graphics.draw(pauseButton, x, y)
-    end
+    -- Normal Pause Button --
+    love.graphics.draw(pauseButton, x, y)
+    local oldFont = love.graphics.getFont()
+
+    love.graphics.setColor(50/255, 50/255, 70/255, 0.8)
+    love.graphics.setFont(pauseFont)
+
+    local pauseText = "ESC"
+    local pauseTextX = x + (continueButton:getWidth() / 2)
+        - pauseFont:getWidth(pauseText) / 2
+
+    love.graphics.print(
+        pauseText,
+        pauseTextX,
+        y + continueButton:getHeight() + 5
+    )
+
+    love.graphics.setFont(oldFont)
 end
 
 return PauseMenu

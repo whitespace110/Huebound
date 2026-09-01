@@ -5,35 +5,49 @@ Player.__index = Player
 -- - Creating particles --
 local Particles = require("particles")
 
+-- - Player Spawn Point - --
+function Player:getSpawn(map)
+    local x, y
+
+    if map.layers["Spawn"] then
+        for i, spawnPoint in pairs(map.layers["Spawn"].objects) do
+            x, y = spawnPoint.x, spawnPoint.y
+            break -- > break after the spawn is found
+        end
+    end
+
+    return x, y
+end
+
 -- - Create Player - --
-function Player:new(world, anim8)
+function Player:new(world, anim8, map)
     local self = setmetatable({}, Player)
 
-    self.x = 640
-    self.y = 360
+    self.x, self.y = self:getSpawn(map)
 
     self.width = 32
     self.height = 48
 
-    self.velX = 2400
-    self.velY = -1200
-    self.maxVel = 420
+    self.velX = 2500
+    self.velY = -950
+    self.maxVel = 320
 
     -- Physics Object --
-    self.cut = 5
+    self.cut = 6
     self.collider = world:newBSGRectangleCollider(
-                    self.x,
-                    self.y,
-                    self.width,
-                    self.height,
-                    self.cut
+        self.x,
+        self.y,
+        self.width,
+        self.height,
+        self.cut
     )
     self.collider:setFixedRotation(true)
-    self.collider:setFriction(3)
+    self.collider:setFriction(4)
     self.collider:setCollisionClass("Player")
 
     self.grounded = false
     self.moving = false
+    self.complete = false
     self.direction = "right"
     self.color = "red"
 
@@ -41,6 +55,10 @@ function Player:new(world, anim8)
     self.collider:setPreSolve(function(collider1, collider2, contact)
         -- Platform Collision Detection --
         local nx, ny = contact:getNormal()
+
+        if collider2.collision_class == "Finish" then
+            self.complete = true
+        end
 
         local validPlatform =
             collider2.collision_class == "Ground"
@@ -54,7 +72,7 @@ function Player:new(world, anim8)
         end
 
         -- Ground Collision Detection --
-        if ny < 0 then
+        if ny < 0 and collider2.collision_class ~= "Finish" then
             self.grounded = true
         end
     end)
@@ -100,11 +118,22 @@ function Player:new(world, anim8)
 
     self.anim = self.animations.red.right.idle
 
+    -- Sound Effects --
+    self.sfx = {}
+    self.sfx.jump = love.audio.newSource("assets/sounds/jump.wav", "static")
+    self.sfx.switch = love.audio.newSource("assets/sounds/color_change.wav", "static")
+    self.sfx.death = love.audio.newSource("assets/sounds/dead.wav", "static")
+
     return self
 end
 
+-- - Has the Player Completed the Level - --
+function Player:isComplete()
+	return self.complete
+end
+
 -- - Update Player - --
-function Player:update(dt)
+function Player:update(dt, map)
     -- Player Movement --
     self.moving = false -- > resseting movement indicator
 
@@ -134,6 +163,18 @@ function Player:update(dt)
     self.collider:setAwake(true)
     self.grounded = false -- > resetting grounded every frame
     Particles:update(dt)
+
+    -- Player Death --
+    local sx, sy = self:getSpawn(map)
+    local deadzone = sy + 1440
+
+    if self.y >= deadzone then
+        self.sfx.death:play()
+        self.collider:setPosition(sx, sy)
+        self.collider:setLinearVelocity(0, 0)
+        self.color = "red"
+        self.direction = "right"
+    end
 end
 
 -- - Update player animations - --
@@ -162,17 +203,21 @@ function Player:keypressed(key)
     -- Player jumping --
     if key == "w" and self.grounded then
         self.collider:applyLinearImpulse(0, self.velY)
+        self.sfx.jump:play()
     end
 
     -- Player changing colors --
     if key == "left" and self.color ~= "red" then
         self.color = "red"
+        self.sfx.switch:play()
         Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
     elseif key == "up" and self.color ~= "blue" then
         self.color = "blue"
+        self.sfx.switch:play()
         Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
     elseif key == "right" and self.color ~= "yellow" then
         self.color = "yellow"
+        self.sfx.switch:play()
         Particles:spawn(self.x + self.width / 2, self.y + self.height / 2, Particles:getColor(self.color))
     end
 end
