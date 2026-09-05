@@ -1,6 +1,9 @@
 -- - Window - --
 local scrWidth, scrHeight = love.graphics.getDimensions()
 
+-- - Saving - --
+local Save = require("save")
+
 -- - Custom Mouse - --
 local customMouse = require("mouse")
 
@@ -23,11 +26,15 @@ sounds.complete = love.audio.newSource("assets/sounds/complete.wav", "static")
 
 -- - Map - --
 local sti = require("libraries/sti")
+
 local map
 local platforms = {}
 local redPlatforms = {}
 local bluePlatforms = {}
 local yellowPlatforms = {}
+
+local levels = { "level1", "level2", "level3", "level4", "level5" }
+local currentLevel = levels[1]
 
 -- - Camera - --
 local Camera = require("libraries/camera")
@@ -132,11 +139,15 @@ end
 
 -- - Loading - --
 function love.load()
+    -- Create and Update Savefile --
+    Save:new()
+    Save:load()
+
     -- Sharpen the sprites --
     love.graphics.setDefaultFilter("nearest", "nearest")
 
     -- Map Specification --
-    map = sti("assets/maps/level1.lua")
+    map = sti("assets/maps/" .. currentLevel .. ".lua")
 
     -- Initilazing World --
     world = wf.newWorld(0, gravity)
@@ -153,7 +164,7 @@ function love.load()
     levelFinish()
 
     -- Player Creation --
-    player = Player:new(world, anim8, map)
+    player = Player:new(world, anim8, map, Save, Timer)
     playerSpawnX, playerSpawnY = player:getSpawn(map)
 
     -- Title Animation --

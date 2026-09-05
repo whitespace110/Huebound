@@ -20,7 +20,7 @@ function Player:getSpawn(map)
 end
 
 -- - Create Player - --
-function Player:new(world, anim8, map)
+function Player:new(world, anim8, map, save, timer)
     local self = setmetatable({}, Player)
 
     self.x, self.y = self:getSpawn(map)
@@ -50,6 +50,7 @@ function Player:new(world, anim8, map)
     self.complete = false
     self.direction = "right"
     self.color = "red"
+    self.attempts = 0
 
     -- Physics Updates --
     self.collider:setPreSolve(function(collider1, collider2, contact)
@@ -57,6 +58,7 @@ function Player:new(world, anim8, map)
         local nx, ny = contact:getNormal()
 
         if collider2.collision_class == "Finish" then
+            if not self.complete then save:update("level1", timer.time, self.attempts) end
             self.complete = true
         end
 
@@ -170,6 +172,7 @@ function Player:update(dt, map)
 
     if self.y >= deadzone then
         self.sfx.death:play()
+        self.attempts = self.attempts + 1
         self.collider:setPosition(sx, sy)
         self.collider:setLinearVelocity(0, 0)
         self.color = "red"

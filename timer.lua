@@ -22,7 +22,7 @@ function Timer:reset()
     self.time = 0
 end
 
--- - Timer Start - --
+-- - Timer Update - --
 function Timer:update(dt)
     if self.running then self.time = self.time + dt end
 end
