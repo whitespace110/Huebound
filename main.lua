@@ -24,6 +24,9 @@ local anim8 = require("libraries/anim8")
 local sounds = {}
 sounds.complete = love.audio.newSource("assets/sounds/complete.wav", "static")
 
+-- - Level Selection Menu - --
+local LevelMenu = require("levelmenu")
+
 -- - Map - --
 local sti = require("libraries/sti")
 
@@ -34,7 +37,7 @@ local bluePlatforms = {}
 local yellowPlatforms = {}
 
 local levels = { "level1", "level2", "level3", "level4", "level5" }
-local currentLevel = levels[1]
+local currentLevel = levels[LevelMenu.levelIndex]
 
 -- - Camera - --
 local Camera = require("libraries/camera")
@@ -213,7 +216,7 @@ function love.keypressed(key)
     end
 end
 
--- - Upadating - --
+-- - Updating - --
 function love.update(dt)
     if not PauseMenu:isPaused() then
         player:update(dt, map)
@@ -234,7 +237,8 @@ function love.update(dt)
         end
     end
 
-    Menu:update(dt, shader, Timer)
+    LevelMenu:update(dt, Timer)
+    Menu:update(dt, shader)
     customMouse:update()
 end
 
@@ -279,9 +283,11 @@ function love.draw()
     -- Complete Text --
     if player:isComplete() then love.graphics.print("you won", scrWidth/2, 400) end
 
-
     -- Render Pause Menu --
     PauseMenu:draw(scrWidth, scrHeight)
+
+    -- Rebder Level Menu --
+    LevelMenu:draw(scrWidth, scrHeight)
 
     -- Render Starting Menu and Shader--
     love.graphics.setShader(shader.ping)

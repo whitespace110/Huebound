@@ -104,4 +104,9 @@ function Save:update(level, time, attempts)
     Save.savefile:close()
 end
 
+-- - Get the Savefile's Data - --
+function Save:getData()
+	return data
+end
+
 return Save

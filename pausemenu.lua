@@ -4,7 +4,6 @@ PauseMenu.paused = false
 
 -- - Sprites - --
 local pauseButton = love.graphics.newImage("assets/images/ui/icons/pause.png")
-local pauseMenu = love.graphics.newImage("assets/images/ui/pause_menu.png")
 local ecscapeButtonIcon = love.graphics.newImage("assets/images/ui/icons/return_to_menu.png")
 local restartButtonIcon = love.graphics.newImage("assets/images/ui/icons/restart.png")
 local continueButton = love.graphics.newImage("assets/images/ui/icons/continue.png")

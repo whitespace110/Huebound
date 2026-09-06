@@ -86,11 +86,6 @@ function Menu:update(dt, shader, timer)
 
     -- Upadte Title --
     if not started and backgroundOpacity >= 0 then titleAnimation:update(dt) end
-
-    -- Start Timer --
-    if opacity and backgroundOpacity <= 0  and not finished then
-	 timer:start()
-    end
 end
 
 -- - Render Main Menu - --
