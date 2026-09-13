@@ -20,7 +20,7 @@ function Player:getSpawn(map)
 end
 
 -- - Create Player - --
-function Player:new(world, anim8, map, save, timer)
+function Player:new(world, anim8, map, save, timer, currentLevel)
     local self = setmetatable({}, Player)
 
     self.x, self.y = self:getSpawn(map)
@@ -50,7 +50,9 @@ function Player:new(world, anim8, map, save, timer)
     self.complete = false
     self.direction = "right"
     self.color = "red"
-    self.attempts = 0
+
+    self.attempts = 1
+    self.level = currentLevel
 
     -- Physics Updates --
     self.collider:setPreSolve(function(collider1, collider2, contact)
@@ -58,7 +60,8 @@ function Player:new(world, anim8, map, save, timer)
         local nx, ny = contact:getNormal()
 
         if collider2.collision_class == "Finish" then
-            if not self.complete then save:update("level1", timer.time, self.attempts) end
+            if not self.complete then save:update(self.level, timer.time, self.attempts) end
+            timer:stop()
             self.complete = true
         end
 
@@ -74,7 +77,7 @@ function Player:new(world, anim8, map, save, timer)
         end
 
         -- Ground Collision Detection --
-        if ny < 0 and collider2.collision_class ~= "Finish" then
+        if math.abs(ny) == 1 and collider2.collision_class ~= "Finish" then
             self.grounded = true
         end
     end)

@@ -6,7 +6,7 @@ LevelMenu.secondaryOpacity = 1
 LevelMenu.opacity = 1
 LevelMenu.clickCooldown = 0
 
--- Data --
+-- - Data - --
 local save = require("save")
 
 -- - Sprites - --
@@ -27,17 +27,19 @@ local font = love.graphics.newFont("assets/fonts/Jersey10-Regular.ttf", 70)
 local statFont = love.graphics.newFont("assets/fonts/Jersey10-Regular.ttf", 30)
 
 -- - Updating Level Menu - --
-function LevelMenu:update(dt, timer)
+function LevelMenu:update(dt, timer, mapload)
     local mouseX, mouseY = love.mouse.getPosition()
 
     LevelMenu.clickCooldown = math.max(0, LevelMenu.clickCooldown - dt)
+    local data = save:getData()
 
     if love.mouse.isDown(1) then
         -- Level Selection --
         if mouseX >= buttonX
             and mouseX <= buttonX + levelButton:getWidth() * 1.5
             and mouseY >= buttonY
-            and mouseY <= buttonY + levelButton:getHeight() * 1.5 then
+            and mouseY <= buttonY + levelButton:getHeight() * 1.5
+            and data["level" .. LevelMenu.levelIndex].unlocked then
             LevelMenu.selected = true
         end
 
@@ -51,6 +53,7 @@ function LevelMenu:update(dt, timer)
                 LevelMenu.levelIndex = LevelMenu.levelIndex - 1
                 LevelMenu.clickCooldown = 0.4
             end
+            mapload("level" .. LevelMenu.levelIndex)
         end
 
         -- Right Arrow --
@@ -63,6 +66,7 @@ function LevelMenu:update(dt, timer)
                 LevelMenu.levelIndex = LevelMenu.levelIndex + 1
                 LevelMenu.clickCooldown = 0.4
             end
+            mapload("level" .. LevelMenu.levelIndex)
         end
     end
 

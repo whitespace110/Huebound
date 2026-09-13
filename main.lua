@@ -137,6 +137,50 @@ local function addLayer(color, x, y, width, height)
     love.graphics.rectangle("fill", x, y, width, height)
 end
 
+-- - Map Loader helper Function - --
+local function loadLevel(level)
+    currentLevel = level
+    map = sti("assets/maps/" .. currentLevel .. ".lua")
+    local allPlatforms = { platforms, redPlatforms, bluePlatforms, yellowPlatforms }
+
+    -- Destroy All colliders Before Generating Level --
+    for _, platformGroup in ipairs(allPlatforms) do
+        for _, platform in pairs(platformGroup) do
+            platform:destroy()
+        end
+    end
+
+    -- Resetting the Lists --
+    platforms = {}
+    redPlatforms = {}
+    bluePlatforms = {}
+    yellowPlatforms = {}
+
+    if sensor then
+        sensor:destroy()
+        sensor = nil
+    end
+
+    generateColliders()
+    levelFinish()
+
+    -- Reset the Player --
+    playerSpawnX, playerSpawnY = player:getSpawn(map)
+    currentLevel = level
+    player.level = currentLevel
+    player.collider:setPosition(playerSpawnX, playerSpawnY)
+    player.collider:setLinearVelocity(0, 0)
+    player.color = "red"
+    player.direction = "right"
+    player.collider:setAngularVelocity(0)
+    player.grounded = false
+    player.complete = false
+    finish = true
+    Timer:reset()
+
+    world:update(0)
+end
+
 -- --- --
 
 
@@ -167,7 +211,7 @@ function love.load()
     levelFinish()
 
     -- Player Creation --
-    player = Player:new(world, anim8, map, Save, Timer)
+    player = Player:new(world, anim8, map, Save, Timer, currentLevel)
     playerSpawnX, playerSpawnY = player:getSpawn(map)
 
     -- Title Animation --
@@ -218,7 +262,7 @@ end
 
 -- - Updating - --
 function love.update(dt)
-    if not PauseMenu:isPaused() then
+    if not PauseMenu:isPaused() and Menu:isStarted() then
         player:update(dt, map)
         world:update(dt)
         player:updateAnimation(dt)
@@ -237,7 +281,7 @@ function love.update(dt)
         end
     end
 
-    LevelMenu:update(dt, Timer)
+    LevelMenu:update(dt, Timer, loadLevel)
     Menu:update(dt, shader)
     customMouse:update()
 end
