@@ -226,6 +226,12 @@ end
 
 -- - Single Imputs - --
 function love.keypressed(key)
+    -- Endscreen Inputs --
+    if player:isComplete() then
+        LevelMenu:keypressed(key, true, player, map, Timer, loadLevel)
+        return
+    end
+
     -- Player Jump --
     if not PauseMenu:isPaused() then player:keypressed(key) end
 
@@ -256,13 +262,27 @@ function love.keypressed(key)
         player.collider:setLinearVelocity(0, 0)
         player.color = "red"
         player.direction = "right"
+        Save:updateAttempts(currentLevel)
         Timer:reset()
+    end
+
+    -- Return to Menu --
+    if key == "h" and PauseMenu:isPaused() then
+        LevelMenu.drawn = true
+        player.collider:setLinearVelocity(0, 0)
+        player.collider:setPosition(player:getSpawn(map))
+        player.color = "red"
+        player.direction = "right"
+        PauseMenu:toggle()
     end
 end
 
 -- - Updating - --
 function love.update(dt)
-    if not PauseMenu:isPaused() and Menu:isStarted() then
+    if not PauseMenu:isPaused()
+        and Menu:isStarted()
+        and LevelMenu.selected then
+
         player:update(dt, map)
         world:update(dt)
         player:updateAnimation(dt)
@@ -323,15 +343,20 @@ function love.draw()
     -- Render Timer --
     Timer:draw(scrWidth, scrHeight)
 
-
-    -- Complete Text --
-    if player:isComplete() then love.graphics.print("you won", scrWidth/2, 400) end
-
     -- Render Pause Menu --
     PauseMenu:draw(scrWidth, scrHeight)
 
     -- Rebder Level Menu --
     LevelMenu:draw(scrWidth, scrHeight)
+
+    -- Render Endscreen --
+    LevelMenu:endscreen(
+        scrWidth,
+        scrHeight,
+        Timer,
+        player.attempts,
+        player:isComplete()
+    )
 
     -- Render Starting Menu and Shader--
     love.graphics.setShader(shader.ping)

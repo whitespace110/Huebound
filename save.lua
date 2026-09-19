@@ -106,7 +106,15 @@ end
 
 -- - Get the Savefile's Data - --
 function Save:getData()
-	return data
+    return data
+end
+
+-- - Update the Attempts After Resetting - --
+function Save:updateAttempts(level)
+    Save.savefile:open('w')
+    data[level].attempts = data[level].attempts + 1
+    Save.savefile:write(TSerial.pack(data))
+    Save.savefile:close()
 end
 
 return Save
